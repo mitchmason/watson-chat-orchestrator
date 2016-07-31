@@ -155,23 +155,19 @@ def register_application(app):
 	HASH_VALUES = load_hash_values(app)
 	return app
 	
-def get_application_response(dialog_response, message):
+def get_application_response(conversation_response, message):
 	#global HASH_VALUES, PRODUCT_NAME_OPTIONS_DEFAULT, PRODUCT_NAME_OPTIONS_POPULATED
 	global HASH_VALUES
-	application_response = dialog_response
+	application_response = conversation_response
 	for key in HASH_VALUES:
 		value = HASH_VALUES[key]
 		application_response = application_response.replace(key, value)
 	#randr search requested
-	if (dialog_response.startswith(SEARCH_WITH_RANDR)):
-		#question = dialog_response.replace(SEARCH_WITH_RANDR, '')
-		#application_response = search_randr(question)
+	if (conversation_response.startswith(SEARCH_WITH_RANDR)):
 		search_arg = extract_search_arg(message)
 		application_response = search_randr(search_arg)
 	#wex search requested
-	if (dialog_response.startswith(SEARCH_WITH_WEX)):
-		#question = dialog_response.replace(SEARCH_WITH_WEX, '')
-		#application_response = search_wex(question)
+	if (conversation_response.startswith(SEARCH_WITH_WEX)):
 		search_arg = extract_search_arg(message)
 		application_response = search_randr(search_arg)
 	application_response = get_custom_response(application_response)

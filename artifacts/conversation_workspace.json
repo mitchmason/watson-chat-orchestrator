@@ -1,3 +1,5 @@
+
+
 {
   "name": "Watson-Call-Center",
   "created": "2016-07-12T17:30:58.442Z",
@@ -474,7 +476,7 @@
   ],
   "language": "en",
   "metadata": null,
-  "modified": "2016-07-26T03:02:16.146Z",
+  "modified": "2016-07-31T04:28:56.856Z",
   "created_by": null,
   "description": "Conversational engine for the demo application highlighting the Watson API's in a call center context.",
   "modified_by": null,
@@ -492,6 +494,20 @@
       "description": null,
       "dialog_node": "node_24_1468387434670",
       "previous_sibling": "node_17_1468362300489"
+    },
+    {
+      "go_to": null,
+      "output": {
+        "text": "An extended warranty has been purchased for your flat screen TV.\n[ul][li]Manufacturer: $Manufacturer[li] Model: $Model[li]Serial Number: $Serial_Number[\/ul]"
+      },
+      "parent": "node_18_1468362453927",
+      "context": null,
+      "created": "2016-07-31T04:08:40.479Z",
+      "metadata": null,
+      "conditions": "true",
+      "description": null,
+      "dialog_node": "node_3_1469938126744",
+      "previous_sibling": null
     },
     {
       "go_to": null,
@@ -580,15 +596,15 @@
     {
       "go_to": null,
       "output": {
-        "text": "I can help you purchase an extended warranty for your television. We have your account information on file, but please complete the form in the pane on the right to proceed. If there is a problem, I'll connect you to a live agent.\n(--FORM--)\n[form action='\/page' method='POST']\n[p]Please fill out the following information:[\/p]\n[p]\n[span style='width: 120px; display:inline-block;']Serial Number:[\/span] [input type='text' name='Serial_Number' value=''\/][br]\n[span style='width: 120px; display:inline-block;']Model Number:[\/span] [input type='text' name='Model' value=''\/][br]\n[span style='width: 120px; display:inline-block;']Manufacturer:[\/span] [select name='Manufacturer'][option value='LG']LG[\/option][option value='RCA']RCA[\/option][option value='Samsung']Samsung[\/option][option value='Sony']Sony[\/option][\/select][br]\n[\/p]\n[p]Please click 'Done' when you've entered the information.[br][input type='submit' name='cursor-input' value='Done'\/] [input type='submit' name='cursor-input' value='Cancel'\/][\/p]\n[\/form]"
+        "text": "I can help you purchase an extended warranty for your television. We have your account information on file, but please complete the form in the pane on the right to proceed. If there is a problem, I'll connect you to a live agent.\n(--FORM--)\n[form action='\/form' method='POST']\n[p]Please fill out the following information:[\/p]\n[p]\n[span style='width: 120px; display:inline-block;']Serial Number:[\/span] [input type='text' name='Serial_Number' value=''\/][br]\n[span style='width: 120px; display:inline-block;']Model Number:[\/span] [input type='text' name='Model' value=''\/][br]\n[span style='width: 120px; display:inline-block;']Manufacturer:[\/span] [select name='Manufacturer'][option value='LG']LG[\/option][option value='RCA']RCA[\/option][option value='Samsung']Samsung[\/option][option value='Sony']Sony[\/option][\/select][br]\n[\/p]\n[p]Please click 'Done' when you've entered the information.[br][input type='submit' name='cursor-input' value='Done'\/] [input type='submit' name='cursor-input' value='Cancel'\/][\/p]\n[\/form]"
       },
-      "parent": "node_18_1468362453927",
+      "parent": "node_17_1468362300489",
       "context": null,
-      "created": "2016-07-12T23:44:42.917Z",
+      "created": "2016-07-12T22:27:31.713Z",
       "metadata": null,
       "conditions": "@decision:yes",
       "description": null,
-      "dialog_node": "node_22_1468367085153",
+      "dialog_node": "node_18_1468362453927",
       "previous_sibling": null
     },
     {
@@ -638,14 +654,14 @@
       "output": {
         "text": "So you would like to purchase an extended warranty for your television. Is that correct?"
       },
-      "parent": "node_17_1468362300489",
+      "parent": null,
       "context": null,
-      "created": "2016-07-12T22:27:31.713Z",
+      "created": "2016-07-12T22:24:58.279Z",
       "metadata": null,
-      "conditions": "true",
+      "conditions": "#warranty",
       "description": null,
-      "dialog_node": "node_18_1468362453927",
-      "previous_sibling": null
+      "dialog_node": "node_17_1468362300489",
+      "previous_sibling": "node_9_1468357076265"
     },
     {
       "go_to": null,
@@ -666,14 +682,14 @@
       "output": {
         "text": "What else may I assist you with then?"
       },
-      "parent": "node_18_1468362453927",
+      "parent": "node_17_1468362300489",
       "context": null,
-      "created": "2016-07-12T23:48:28.108Z",
+      "created": "2016-07-27T22:53:19.338Z",
       "metadata": null,
-      "conditions": "true",
+      "conditions": null,
       "description": null,
-      "dialog_node": "node_23_1468367310366",
-      "previous_sibling": "node_22_1468367085153"
+      "dialog_node": "node_3_1469660001810",
+      "previous_sibling": "node_18_1468362453927"
     },
     {
       "go_to": null,
@@ -706,25 +722,8 @@
       "description": null,
       "dialog_node": "node_9_1468357076265",
       "previous_sibling": "node_10_1468347101484"
-    },
-    {
-      "go_to": {
-        "return": null,
-        "selector": "condition",
-        "dialog_node": "node_18_1468362453927"
-      },
-      "output": {
-        "text": ""
-      },
-      "parent": null,
-      "context": null,
-      "created": "2016-07-12T22:24:58.279Z",
-      "metadata": null,
-      "conditions": "#warranty",
-      "description": null,
-      "dialog_node": "node_17_1468362300489",
-      "previous_sibling": "node_9_1468357076265"
     }
   ],
   "workspace_id": "74977afb-0288-4ad7-98dc-ab2c5f226f3a"
 }
+

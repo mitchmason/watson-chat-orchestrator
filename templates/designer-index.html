@@ -11,6 +11,8 @@
 				element.scrollTop = element.scrollHeight;
 			}
 		</script>
+		<script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
 		<link href="/static/stylesheets/styles.css" rel="stylesheet">
 	</head>
 	<body onload=updateScroll()>
@@ -33,7 +35,7 @@
 				<p><input id="voice" type="checkbox" /> Use voice</p>
 				<form class="chat--input" action='.' method='POST'>
 					<input autofocus id="response-input" name='response-input' placeholder="Ask IBM a question..."></input>
-					<button>Send</button>
+					<button name='send-button'>Send</button>
 				</form>
 			</main>
 			<aside>
@@ -104,6 +106,80 @@
 			}
 			voiceCheckbox.onclick = initVoice;
 			initVoice();
+		</script>
+		<script type='text/javascript'>
+		//	The following handle client side form validation
+			$(document).ready(function() {
+				console.log('---Document ready---');
+
+			//	Helper function to ensure email is correct format
+				function validateEmail(email) {
+					var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+					return emailReg.test(email);
+				}
+			/*	
+				$("button[name='send-button']").prop('disabled',true);
+				$('#response-input').bind('input', function(){
+					$("button[name='send-btton']").prop('disabled', this.value == "" ? true : false);     
+				});
+			*/
+			//	$('#response-input').keyup(function(){
+			//		$("button[name='send-button']").prop('disabled', this.value == "" ? true : false);     
+			//	})
+				
+			//	Form validaton for form
+				$("form[action='/form']").find("input[name='form_input'][value='Done']").click(function(event) {
+					var first_name = $("input[name='first_name']").val();
+					var last_name = $("input[name='last_name']").val();
+					var date_of_birth = $("input[name='date_of_birth']").val();
+					var phone_number = $("input[name='phone_number']").val();
+					var current_address = $("input[name='current_address']").val();
+				//	var email = ($("input[name='Email']")).val();
+
+					var noSubmit = 0;
+					if (first_name == '') {
+						$("span:contains('First Name:')").html('First Name: *cannot be empty').css('color', 'red');
+						noSubmit++;
+					} else {
+						$("span:contains('First Name:')").html('First Name:').css('color', 'black');
+					}
+					if (last_name == '') {
+						$("span:contains('Last Name:')").html('Last Name:    *cannot be empty').css('color', 'red');
+					} else {
+						$("span:contains('Last Name:')").html('Last Name:').css('color', 'black');
+					}
+					if (date_of_birth == '') {
+						$("span:contains('Date of Birth:')").html('Date of Birth:<br>*cannot be empty').css('color', 'red');
+						noSubmit++;
+					} else {
+						$("span:contains('Date of Birth:')").html('Date of Birth:').css('color', 'black');
+					}
+					if (phone_number == '') {
+						$("span:contains('Phone Number:')").html('Phone Number:<br>*cannot be empty').css('color', 'red');
+						noSubmit++;
+					} else {
+						$("span:contains('Phone Number:')").html('Phone Number:').css('color', 'black');
+					}
+					if (current_address == '') {
+						$("span:contains('Current Address:')").html('Current Address:<br>*cannot be empty').css('color', 'red');
+						noSubmit++;
+					} else {
+						$("span:contains('Current Address:')").html('Current Address:').css('color', 'black');
+					}
+				//	if (email == '') {
+				//		$("span:contains('Email:')").html('Email:<br>*cannot be empty').css('color', 'red');
+				//		noSubmit++;
+				//	} else if (!validateEmail(email)) {
+				//		$("span:contains('Email:')").html('Email: *malformed email').css('color', 'red');
+				//		noSubmit++;
+				//	} else {
+				//		$("span:contains('Email:')").html('Email:').css('color', 'black');
+				//	}
+					if (noSubmit) {
+						event.preventDefault();
+					}
+				});
+			});
 		</script>
 	</body>
 </html>

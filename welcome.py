@@ -30,6 +30,7 @@ QUESTION_INPUT = 'response-input'
 SEARCH_TYPE_INPUT = 'search-type'
 SEARCH_VALUE_INPUT = 'search-values'
 CURSOR_INPUT = 'cursor-input'
+FORM_INPUT = 'form_input'
 #####
 # Overwrites by env variables
 #####
@@ -113,20 +114,20 @@ def post_user_input(input):
 	g('POSTS',[]).append(post)
 	return post
 
-def get_chat_response(dialog_response):
+def get_chat_response(conversation_response):
 	global PRESENT_FORM
-	chat_response = dialog_response
-	if PRESENT_FORM in dialog_response:
-		responses = dialog_response.split(PRESENT_FORM)
+	chat_response = conversation_response
+	if PRESENT_FORM in conversation_response:
+		responses = conversation_response.split(PRESENT_FORM)
 		chat_response = responses[0]
 	return chat_response
 	
 # Form presentation funcs ------------------------
-def get_form(dialog_response):
+def get_form(conversation_response):
 	global PRESENT_FORM
 	form = ''
-	if PRESENT_FORM in dialog_response:
-		responses = dialog_response.split(PRESENT_FORM)
+	if PRESENT_FORM in conversation_response:
+		responses = conversation_response.split(PRESENT_FORM)
 		form = responses[1]
 	return form
 
@@ -139,26 +140,28 @@ def	set_selected_values(form, option_value):
 
 # Watson helper funcs ----------------------------
 def format_conversation_response(message):
-	dialog_response = 'The chat-bot is not currently available. Try again?'
+	conversation_response = 'The chat-bot is not currently available. Try again?'
 	if 'output' in message:
 		output = message['output']
 		if 'text' in output:
-			dialog_response = ''
+			conversation_response = ''
 			text = output['text']
 			for dialog_response_line in text:
 				if str(dialog_response_line) != '':
-					if len(dialog_response) > 0:
-						dialog_response = dialog_response + ' ' + dialog_response_line
+					if len(conversation_response) > 0:
+						conversation_response = conversation_response + ' ' + dialog_response_line
 					else:
-						dialog_response = dialog_response_line
-	return dialog_response
+						conversation_response = dialog_response_line
+	return conversation_response
 
-def format_question(question):
+def prepare_message(question, context):
 	message = {}
 	message['input'] = json.loads('{"text": "' + question + '"}')
 	last_message = json.loads(g('MESSAGE', '{}'))
 	if 'context' in last_message:
 		message['context'] = last_message['context']
+	for key in context:
+		message['context'][key] = context[key]
 	return message
 
 def add_alchemy_analysis(transcript, request, parameters, parameter):
@@ -174,6 +177,12 @@ def add_tones(transcript, text):
 	if 'document_tone' in response:
 		transcript['document_tone'] = response['document_tone']
 	return transcript
+
+def get_conversation_message(question, context):
+	message = prepare_message(question, context)
+	message = BMIX_get_conversation_message(message)
+	s('MESSAGE', json.dumps(message))
+	return message
 
 # Session var set and get funcs ------------------
 def s(key, value):
@@ -209,26 +218,40 @@ def Index():
 @app.route('/', methods=['POST'])
 def Index_Post():
 	global CHAT_TEMPLATE, QUESTION_INPUT
+#	Capture value and display user question
 	question = request.form[QUESTION_INPUT]
-#	Display original question
 	post_user_input(question)
-#	Reset display
-	application_response = ''
-	form = ''
-#	Orchestrate services
-	if len(question) == 0:
-		application_response = "C'mon, you have to say something!"
-	else:
-		message = format_question(question)
-		message = BMIX_get_conversation_message(message)
-		s('MESSAGE', json.dumps(message))
-		dialog_response = format_conversation_response(message)
-		application_response = get_application_response(get_chat_response(dialog_response), message)
-		form = get_application_response(get_form(dialog_response), message)
+#	Get conversation response
+	message = get_conversation_message(question, {})
+	conversation_response = format_conversation_response(message)
+	application_response = get_application_response(get_chat_response(conversation_response), message)
+	form = get_application_response(get_form(conversation_response), message)
 #	Display application_response
 	post_watson_response(application_response)
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=form, stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
 	
+@app.route('/form', methods=['POST'])
+def Form_Post():
+	print('---in Form_Post')
+	global CHAT_TEMPLATE
+#	Capture values of form fields
+	context = {}
+	for field in request.form:
+		context[field] = request.form[field]
+		print('---------------')
+		print(field)
+		print(context[field])
+#	Get conversation response
+	message = get_conversation_message('', context)
+	print('---------------')
+	print(message)
+	conversation_response = format_conversation_response(message)
+	application_response = get_application_response(get_chat_response(conversation_response), message)
+	form = get_application_response(get_form(conversation_response), message)
+#	Display application_response
+	post_watson_response(application_response)
+	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=form, stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
+
 @app.route('/page', methods=['POST'])
 def Page_Post():
 	global CHAT_TEMPLATE, CURSOR_INPUT, SEARCH_TYPE_INPUT
@@ -266,13 +289,12 @@ def Page_Post():
 	#if len(question) == 0:
 		#application_response = "C'mon, you have to say something!"
 	#else:
-		#dialog_response = BMIX_get_next_dialog_response(g('DIALOG_CLIENT_ID', 0), g('DIALOG_CONVERSATION_ID', 0), question)
-		#application_response = get_application_response(get_chat_response(dialog_response))
+		#conversation_response = BMIX_get_next_dialog_response(g('DIALOG_CLIENT_ID', 0), g('DIALOG_CONVERSATION_ID', 0), question)
+		#application_response = get_application_response(get_chat_response(conversation_response))
 	#return (application_response)
 
 @app.route('/analyze', methods=['POST'])
 def Analyze_Post():
-	http_response = 'You sent me...'
 	data = json.loads(request.data)
 	if 'conversation_transcript' in data:
 		if 'transcript' in data['conversation_transcript']:
