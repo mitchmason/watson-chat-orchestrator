@@ -1,5 +1,3 @@
-
-
 {
   "name": "Watson-Call-Center",
   "created": "2016-07-12T17:30:58.442Z",
@@ -51,6 +49,53 @@
         {
           "text": "What is the structure of the your company business units and what do they sell",
           "created": "2016-07-12T17:31:41.949Z"
+        }
+      ],
+      "description": null
+    },
+    {
+      "intent": "close_account",
+      "created": "2016-08-05T06:51:10.366Z",
+      "examples": [
+        {
+          "text": "Can you help me close my account?",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "How do I close my account?",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "How do I go about closing my account?",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "I'm going over to one of your competitors",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "I'm going to be switching providers",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "I've decided to shop with another company",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "I want discontinue using your service",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "I won't be doing business here an longer",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "Let's just discontinue this relationship",
+          "created": "2016-08-05T06:51:10.366Z"
+        },
+        {
+          "text": "What do I have to do to close my account?",
+          "created": "2016-08-05T06:51:10.366Z"
         }
       ],
       "description": null
@@ -346,6 +391,14 @@
       "description": null
     },
     {
+      "intent": "true",
+      "created": "2016-08-06T00:19:12.434Z",
+      "examples": [
+        
+      ],
+      "description": null
+    },
+    {
       "intent": "warranty",
       "created": "2016-07-12T17:31:41.883Z",
       "examples": [
@@ -476,7 +529,7 @@
   ],
   "language": "en",
   "metadata": null,
-  "modified": "2016-07-31T04:28:56.856Z",
+  "modified": "2016-08-06T13:56:45.987Z",
   "created_by": null,
   "description": "Conversational engine for the demo application highlighting the Watson API's in a call center context.",
   "modified_by": null,
@@ -536,6 +589,44 @@
       "description": null,
       "dialog_node": "node_1_1469072763059",
       "previous_sibling": null
+    },
+    {
+      "go_to": null,
+      "output": {
+        "text": "(--EVALUATE_PREDICTIVE_MODEL--)Can we encourage you to stay with an enticing retention offer?"
+      },
+      "parent": null,
+      "context": {
+        "predictive_model": {
+          "data": [
+            [
+              "M",
+              78000,
+              42,
+              "Change Rate",
+              "Data Add",
+              0.8,
+              "High"
+            ]
+          ],
+          "header": [
+            "Gender",
+            "Est_Income",
+            "Age",
+            "Intent",
+            "Entity",
+            "Churn Propensity",
+            "CLTV"
+          ],
+          "tablename": "scoreInput"
+        }
+      },
+      "created": "2016-08-05T06:51:24.563Z",
+      "metadata": null,
+      "conditions": "#close_account",
+      "description": null,
+      "dialog_node": "node_1_1470379888629",
+      "previous_sibling": "node_24_1468387434670"
     },
     {
       "go_to": null,
@@ -619,7 +710,7 @@
       "conditions": "anything_else",
       "description": null,
       "dialog_node": "node_2_1468344895246",
-      "previous_sibling": "node_24_1468387434670"
+      "previous_sibling": "node_1_1470379888629"
     },
     {
       "go_to": null,
@@ -726,4 +817,3 @@
   ],
   "workspace_id": "74977afb-0288-4ad7-98dc-ab2c5f226f3a"
 }
-
