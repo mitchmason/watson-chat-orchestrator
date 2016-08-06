@@ -24,6 +24,8 @@ import custom, watson
 #####
 SEARCH_WITH_RANDR = '(--SEARCH_WITH_RANDR--)'
 SEARCH_WITH_WEX = '(--SEARCH_WITH_WEX--)'
+EVALUATE_PREDICTIVE_MODEL = '(--EVALUATE_PREDICTIVE_MODEL--)'
+PRESENT_FORM = '(--FORM--)'
 #####
 # Replacement Strings
 #####
@@ -39,10 +41,12 @@ BODY = {}
 # in external modules
 #####
 populate_entity_from_randr_result = custom.populate_entity_from_randr_result
+respond_to_predictive_model = custom.respond_to_predictive_model
 markup_randr_results = custom.markup_randr_results
 populate_entity_from_wex_result = custom.populate_entity_from_wex_result
 markup_wex_results = custom.markup_wex_results
-get_custom_response = custom.get_custom_response
+#get_custom_response = custom.get_custom_response
+BMIX_evaluate_predictive_model = watson.BMIX_evaluate_predictive_model
 BMIX_retrieve_and_rank = watson.BMIX_retrieve_and_rank
 WEX_retrieve = watson.WEX_retrieve
 
@@ -137,6 +141,15 @@ def extract_search_arg(message):
 			search_arg = input['text']
 	return search_arg
 
+# Predictive Analytics helper funcs --------------
+def extract_predictive_model(message):
+	model = {}
+	if 'context' in message:
+		context = message['context']
+		if 'predictive_model' in context:
+			model = context['predictive_model']
+	return model
+
 # Session var set and get funcs ------------------
 def s(key, value):
 	session[key] = value
@@ -155,22 +168,64 @@ def register_application(app):
 	HASH_VALUES = load_hash_values(app)
 	return app
 	
-def get_application_response(conversation_response, message):
-	#global HASH_VALUES, PRODUCT_NAME_OPTIONS_DEFAULT, PRODUCT_NAME_OPTIONS_POPULATED
+def format_text(message):
+	formatted_text = 'The chat-bot is not currently available. Try again?'
+	if 'output' in message:
+		output = message['output']
+		if 'text' in output:
+			formatted_text = ''
+			text = output['text']
+			for dialog_response_line in text:
+				if str(dialog_response_line) != '':
+					if len(formatted_text) > 0:
+						formatted_text = formatted_text + ' ' + dialog_response_line
+					else:
+						formatted_text = dialog_response_line
+	return formatted_text
+
+def get_form(text):
+	global PRESENT_FORM
+	form = ''
+	if PRESENT_FORM in text:
+		responses = text.split(PRESENT_FORM)
+		form = responses[1]
+	return form
+
+def get_chat(text):
+	global PRESENT_FORM
+	chat = text
+	if PRESENT_FORM in text:
+		responses = text.split(PRESENT_FORM)
+		chat = responses[0]
+	return chat
+	
+def get_application_message(message):
 	global HASH_VALUES
-	application_response = conversation_response
+	formatted_text = format_text(message)
+	formatted_text = string.replace(formatted_text, '[', '<')
+	formatted_text = string.replace(formatted_text, ']', '>')
+	chat = get_chat(formatted_text)
+	form = get_form(formatted_text)
+	context = {}
+	if 'context' in message:
+		context = message['context']
+	#application_message
+	application_message = {'chat': chat, 'form': form, 'context': context}
 	for key in HASH_VALUES:
 		value = HASH_VALUES[key]
-		application_response = application_response.replace(key, value)
+		application_message['chat'] = application_message['chat'].replace(key, value)
 	#randr search requested
-	if (conversation_response.startswith(SEARCH_WITH_RANDR)):
+	if (application_message['chat'].startswith(SEARCH_WITH_RANDR)):
 		search_arg = extract_search_arg(message)
-		application_response = search_randr(search_arg)
+		application_message['chat'] = search_randr(search_arg)
 	#wex search requested
-	if (conversation_response.startswith(SEARCH_WITH_WEX)):
+	if (application_message['chat'].startswith(SEARCH_WITH_WEX)):
 		search_arg = extract_search_arg(message)
-		application_response = search_randr(search_arg)
-	application_response = get_custom_response(application_response)
-	application_response = string.replace(application_response, '[', '<')
-	application_response = string.replace(application_response, ']', '>')
-	return application_response
+		application_message['chat'] = search_randr(search_arg)
+	#predictive model evaluated
+	if (application_message['chat'].startswith(EVALUATE_PREDICTIVE_MODEL)):
+		application_message['chat'] = application_message['chat'].replace(EVALUATE_PREDICTIVE_MODEL, '')
+		model = extract_predictive_model(message)
+		entity = BMIX_evaluate_predictive_model(model)
+		application_message['chat'] = respond_to_predictive_model(entity)
+	return application_message

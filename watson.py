@@ -16,6 +16,8 @@ import xmltodict
 #####
 # Hardcoded env variables defaults for testing
 #####
+PREDICTIVE_ANALYTICS_ACCESS_KEY = 'bSu745UOd6lrmSghgHhu/NvyVmkGLt1l59GtWVkTH/jVaa6OeWkkMZmfXJXhRBTQHxGxQ3pIogjgEOjN0TGDTcL0h32gVzPkwMbmHXNpi+EWMuBV5xiJASD6EmJBaveV3kF9MRR0BVj1P8eQEXa+5TeBflumDIy0mn0XutfMcrI='
+PREDICTIVE_ANALYTICS_CONTEXT_ID = 'score/offerRecommendation'
 ALCHEMY_API_APIKEY = '7a8d2df42fa9b01ba175bf827316c1c55ba46405'
 TONE_ANALYZER_VERSION = '2016-05-19'
 TONE_ANALYZER_USERNAME = '489c7b4b-ecd2-46fd-9fbd-9c86f88beced'
@@ -29,9 +31,9 @@ CONVERSATION_WORKSPACE_ID = '74977afb-0288-4ad7-98dc-ab2c5f226f3a'
 CONVERSATION_VERSION = '2016-07-11'
 CONVERSATION_USERNAME = 'e28a8b8e-8ea0-45ae-b5e7-6832216c6d77'
 CONVERSATION_PASSWORD = 'nBaSsF4eRqxH'
-DIALOG_ID = 'c1da34c8-bf78-4d51-8201-4acbb3aa5bc5'
-DIALOG_USERNAME = 'a69f9fa0-2d36-42ad-a675-80c6c3dcb988'
-DIALOG_PASSWORD = '7CJUxjzYwK0Z'
+DIALOG_ID = '101fa561-5a57-4fe9-be11-6b600198d696'
+DIALOG_USERNAME = 'd639ca57-d0cc-45ee-a36e-dd264734e0be'
+DIALOG_PASSWORD = '4GUeQG8klziC'
 CLASSIFIER_ID = 'cd6374x52-nlc-967'
 CLASSIFIER_USERNAME = '22e377fc-6a7a-4516-8a2e-574161aa4670'
 CLASSIFIER_PASSWORD = '5sY4nrSCuSaL'
@@ -40,10 +42,6 @@ TTS_PASSWORD = 'lEgfLZl9MM9R'
 STT_USERNAME = '463932cc-63e8-4936-b29f-9f8a2639164d'
 STT_PASSWORD = 'q66IJE7lJmgs'
 SOLR_CLUSTER_ID = 'sce5690497_52a7_46f0_b6a2_1341c7c2b63e'
-#SOLR_COLLECTION_NAME = 'arcbest-collection'
-#RANKER_ID = '42B250x11-rank-562'
-#RETRIEVE_AND_RANK_USERNAME = '2b4a1aaa-d177-47fe-8592-15a86104ce4d'
-#RETRIEVE_AND_RANK_PASSWORD = 'SlEx6tCborZL'
 SOLR_COLLECTION_NAME = 'helpdesk-collection'
 RANKER_ID = '1ba90dx16-rank-70'
 RETRIEVE_AND_RANK_USERNAME = '286585e0-a6fd-4d52-973e-e3a9da68faa3'
@@ -53,8 +51,12 @@ WEX_URL = 'http://10.72.19.40/vivisimo/cgi-bin/velocity.exe?v.function=query-sea
 #####
 # Overwrites by env variables
 #####
-if 'ALCHEMY_API_APIKEY' in os.environ:
-	ALCHEMY_API_APIKEY = os.environ['ALCHEMY_API_APIKEY']
+if 'PREDICTIVE_ANALYTICS_CONTEXT_ID' in os.environ:
+	PREDICTIVE_ANALYTICS_CONTEXT_ID = os.environ['PREDICTIVE_ANALYTICS_CONTEXT_ID']
+#if 'PREDICTIVE_ANALYTICS_ACCESS_KEY' in os.environ:
+	#PREDICTIVE_ANALYTICS_ACCESS_KEY = os.environ['PREDICTIVE_ANALYTICS_ACCESS_KEY']
+#if 'ALCHEMY_API_APIKEY' in os.environ:
+	#ALCHEMY_API_APIKEY = os.environ['ALCHEMY_API_APIKEY']
 if 'TONE_ANALYZER_VERSION' in os.environ:
 	TONE_ANALYZER_VERSION = os.environ['TONE_ANALYZER_VERSION']
 if 'CONVERSATION_WORKSPACE_ID' in os.environ:
@@ -78,6 +80,9 @@ if 'WEX_URL' in os.environ:
 if 'VCAP_SERVICES' in os.environ:
 	if len('VCAP_SERVICES') > 0:
 		vcap_services = json.loads(os.environ['VCAP_SERVICES'])
+		if 'pm-20' in vcap_services.keys():
+			pm_20 = vcap_services['pm-20'][0]
+			PREDICTIVE_ANALYTICS_ACCESS_KEY = pm_20["credentials"]["access_key"]
 		if 'alchemy_api' in vcap_services.keys():
 			alchemy_api = vcap_services['alchemy_api'][0]
 			ALCHEMY_API_APIKEY = alchemy_api["credentials"]["apikey"]
@@ -120,6 +125,18 @@ if 'VCAP_SERVICES' in os.environ:
 # local
 #####
 # Encapsulate BMIX services plus helper funcs ----
+def BMIX_evaluate_predictive_model(model):
+	global PREDICTIVE_ANALYTICS_ACCESS_KEY, PREDICTIVE_ANALYTICS_CONTEXT_ID
+	POST_SUCCESS = 200
+	response = {}
+	response['flag'] = False
+	response['message'] = 'r.status_code != POST_SUCCESS'
+	url = 'https://palbyp.pmservice.ibmcloud.com/pm/v1/' + PREDICTIVE_ANALYTICS_CONTEXT_ID + '?accesskey=' + PREDICTIVE_ANALYTICS_ACCESS_KEY
+	r = requests.post(url, headers={'content-type': 'application/json', 'accept': 'application/json'}, data=json.dumps(model))
+	if r.status_code == POST_SUCCESS:
+		response = r.json()
+	return response
+	
 def BMIX_call_alchemy_api(request, parameters):
 	global ALCHEMY_API_APIKEY
 	POST_SUCCESS = 200
@@ -142,7 +159,7 @@ def BMIX_analyze_tone(text):
 		response = r.json()
 	return response
 	
-def BMIX_get_conversation_message(message):
+def BMIX_converse(message):
 	global CONVERSATION_WORKSPACE_ID, CONVERSATION_USERNAME, CONVERSATION_PASSWORD, CONVERSATION_VERSION
 	POST_SUCCESS = 200
 	url = 'https://gateway.watsonplatform.net/conversation/api/v1/workspaces/' + CONVERSATION_WORKSPACE_ID + '/message?version=' + CONVERSATION_VERSION

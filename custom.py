@@ -3,6 +3,10 @@ from pprint import pprint
 import xmltodict
 # ------------------------------------------------
 # FUNCTIONS --------------------------------------
+# ------------------------------------------------
+#####
+# in external modules
+#####
 def populate_entity_from_randr_result(doc):
 	entity = {}
 	entity['id'] = doc['id']
@@ -12,6 +16,9 @@ def populate_entity_from_randr_result(doc):
 	entity['RunBook_URL'] = doc['RunBook_URL'][0]
 	return entity
 
+#####
+# local
+#####
 # Search helper funcs ----------------------------
 def markup_randr_result(entity):
 	return ('<p><b>' + entity['title'] + '</b><br><u>Body:</u> ' + entity['body'] + '<br><u>Runbook URL:</u> ' + entity['RunBook_URL'] + '<br><u>Document id:</u> ' + entity['id']+ '</p>')
@@ -50,7 +57,15 @@ def markup_wex_results(search_results, cursor):
 		application_response = application_response + '<form action="/page" method="POST"><input type="submit" name="cursor-input" value="Next"/> <input type="submit" name="cursor-input" value="Prev"/> <input type="submit" type="submit" name="cursor-input" value="Accept"/> <input type="hidden" name="search-type" value="WEX"></form>'
 	return application_response
 	
-def get_custom_response(application_response):
-	#call out for any customer specific logic to 'intercept' a repsonse
-	custom_response = application_response
-	return custom_response
+#def get_custom_response(application_response):
+	#custom_response = application_response
+	#return custom_response
+
+def respond_to_predictive_model(entity):
+	response = "Can we entice you to stay with an attractive retention offer?"
+	if type(entity) is list:
+		campaign = entity[0]
+		offer_type = campaign['data'][0][0]
+		offer_propensity = campaign['data'][0][1]
+		response = response + ' [Predicitve model shows a propensity of ' + str(offer_propensity) + ' that the customer will respond to a ' + offer_type + ']'
+	return response

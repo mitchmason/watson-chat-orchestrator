@@ -13,7 +13,6 @@ from beaker.middleware import SessionMiddleware
 # Other python modules in WEA demo framework
 #####
 import application, watson
-
 # ------------------------------------------------
 # GLOBAL VARIABLES -------------------------------
 # ------------------------------------------------
@@ -55,10 +54,6 @@ session_opts = {
 	'session.type': 'file',
 	'session.auto': 'true'
 }
-#####
-# Tokens
-#####
-PRESENT_FORM = '(--FORM--)'
 
 # ------------------------------------------------
 # CLASSES ----------------------------------------
@@ -78,9 +73,10 @@ class BeakerSessionInterface(SessionInterface):
 # in external modules
 #####
 register_application = application.register_application
-get_application_response = application.get_application_response
+get_application_message = application.get_application_message
 get_search_response = application.get_search_response
-BMIX_get_conversation_message = watson.BMIX_get_conversation_message
+format_text = application.format_text
+BMIX_converse = watson.BMIX_converse
 BMIX_get_first_dialog_response_json = watson.BMIX_get_first_dialog_response_json
 BMIX_get_next_dialog_response = watson.BMIX_get_next_dialog_response
 BMIX_call_alchemy_api = watson.BMIX_call_alchemy_api
@@ -114,23 +110,7 @@ def post_user_input(input):
 	g('POSTS',[]).append(post)
 	return post
 
-def get_chat_response(conversation_response):
-	global PRESENT_FORM
-	chat_response = conversation_response
-	if PRESENT_FORM in conversation_response:
-		responses = conversation_response.split(PRESENT_FORM)
-		chat_response = responses[0]
-	return chat_response
-	
 # Form presentation funcs ------------------------
-def get_form(conversation_response):
-	global PRESENT_FORM
-	form = ''
-	if PRESENT_FORM in conversation_response:
-		responses = conversation_response.split(PRESENT_FORM)
-		form = responses[1]
-	return form
-
 def	set_selected_values(form, option_value):
 	option = '<option value="' + option_value + '">' + option_value + '</option>'
 	if option_value != None:
@@ -139,31 +119,6 @@ def	set_selected_values(form, option_value):
 	return form
 
 # Watson helper funcs ----------------------------
-def format_conversation_response(message):
-	conversation_response = 'The chat-bot is not currently available. Try again?'
-	if 'output' in message:
-		output = message['output']
-		if 'text' in output:
-			conversation_response = ''
-			text = output['text']
-			for dialog_response_line in text:
-				if str(dialog_response_line) != '':
-					if len(conversation_response) > 0:
-						conversation_response = conversation_response + ' ' + dialog_response_line
-					else:
-						conversation_response = dialog_response_line
-	return conversation_response
-
-def prepare_message(question, context):
-	message = {}
-	message['input'] = json.loads('{"text": "' + question + '"}')
-	last_message = json.loads(g('MESSAGE', '{}'))
-	if 'context' in last_message:
-		message['context'] = last_message['context']
-	for key in context:
-		message['context'][key] = context[key]
-	return message
-
 def add_alchemy_analysis(transcript, request, parameters, parameter):
 	response = BMIX_call_alchemy_api(request, parameters)
 	if parameter in response:
@@ -178,9 +133,18 @@ def add_tones(transcript, text):
 		transcript['document_tone'] = response['document_tone']
 	return transcript
 
-def get_conversation_message(question, context):
-	message = prepare_message(question, context)
-	message = BMIX_get_conversation_message(message)
+def create_message(question, context):
+	message = {}
+	message['input'] = json.loads('{"text": "' + question + '"}')
+	last_message = json.loads(g('MESSAGE', '{}'))
+	if 'context' in last_message:
+		message['context'] = last_message['context']
+	for key in context:
+		message['context'][key] = context[key]
+	return message
+
+def converse(message):
+	message = BMIX_converse(message)
 	s('MESSAGE', json.dumps(message))
 	return message
 
@@ -207,12 +171,11 @@ def Index():
 	tts_token = get_tts_token()
 	s('STT_TOKEN', stt_token)
 	s('TTS_TOKEN', tts_token)
-#	Initialize chat
+#	Initialize POSTS list
 	s('POSTS',[])
-	message = BMIX_get_conversation_message({})
-	s('MESSAGE', json.dumps(message))
-	response = format_conversation_response(message)
-	post_watson_response(response)
+#	Call conversation service/post response
+	message = converse({})
+	post_watson_response(format_text(message))
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form='', stt_token=stt_token, tts_token=tts_token)
 
 @app.route('/', methods=['POST'])
@@ -222,35 +185,27 @@ def Index_Post():
 	question = request.form[QUESTION_INPUT]
 	post_user_input(question)
 #	Get conversation response
-	message = get_conversation_message(question, {})
-	conversation_response = format_conversation_response(message)
-	application_response = get_application_response(get_chat_response(conversation_response), message)
-	form = get_application_response(get_form(conversation_response), message)
-#	Display application_response
-	post_watson_response(application_response)
-	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=form, stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
+	message = create_message(question, {})
+	message = converse(message)
+	application_message = get_application_message(message)
+#	Display and render application_message
+	post_watson_response(application_message['chat'])
+	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=application_message['form'], stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
 	
 @app.route('/form', methods=['POST'])
 def Form_Post():
-	print('---in Form_Post')
 	global CHAT_TEMPLATE
 #	Capture values of form fields
 	context = {}
 	for field in request.form:
 		context[field] = request.form[field]
-		print('---------------')
-		print(field)
-		print(context[field])
 #	Get conversation response
-	message = get_conversation_message('', context)
-	print('---------------')
-	print(message)
-	conversation_response = format_conversation_response(message)
-	application_response = get_application_response(get_chat_response(conversation_response), message)
-	form = get_application_response(get_form(conversation_response), message)
-#	Display application_response
-	post_watson_response(application_response)
-	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=form, stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
+	message = create_message('', context)
+	message = converse(message)
+	application_message = get_application_message(message)
+#	Display and render application_message
+	post_watson_response(application_message['chat'])
+	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=application_message['form'], stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
 
 @app.route('/page', methods=['POST'])
 def Page_Post():
@@ -269,29 +224,6 @@ def Page_Post():
 #	Display application_response
 	post_watson_response(application_response)
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form='', stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
-
-#@app.route('/service')
-#def Service():
-	#response_json = BMIX_get_first_dialog_response_json()
-	#if response_json != None:
-		#s('DIALOG_CLIENT_ID', response_json['client_id'])
-		#s('DIALOG_CONVERSATION_ID', response_json['conversation_id'])
-	#return json.dumps(response_json, sort_keys=True, indent=4, separators=(',', ': '))
-	
-#@app.route('/service', methods=['POST'])
-#def Service_Post():
-	#data = json.loads(request.data)
-	#client_id = data['client_id']
-	#conversation_id = data['conversation_id']
-	#question = data['question']
-#	Orchestrate
-	#application_response = ''
-	#if len(question) == 0:
-		#application_response = "C'mon, you have to say something!"
-	#else:
-		#conversation_response = BMIX_get_next_dialog_response(g('DIALOG_CLIENT_ID', 0), g('DIALOG_CONVERSATION_ID', 0), question)
-		#application_response = get_application_response(get_chat_response(conversation_response))
-	#return (application_response)
 
 @app.route('/analyze', methods=['POST'])
 def Analyze_Post():
