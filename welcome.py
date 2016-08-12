@@ -30,9 +30,12 @@ SEARCH_TYPE_INPUT = 'search-type'
 SEARCH_VALUE_INPUT = 'search-values'
 CURSOR_INPUT = 'cursor-input'
 FORM_INPUT = 'form_input'
+PREDICTIVE_MODEL = '{"data":[["M",78000,42,"Change Rate","Data Add",0.8,"High"]],"header":["Gender","Est_Income","Age","Intent","Entity","Churn Propensity","CLTV"],"tablename":"scoreInput"}'
 #####
 # Overwrites by env variables
 #####
+if 'PREDICTIVE_MODEL' in os.environ:
+	PREDICTIVE_MODEL = os.environ['PREDICTIVE_MODEL']
 if 'WATSON_STYLE' in os.environ:
 	WATSON_STYLE = os.environ['WATSON_STYLE']
 if 'PERSONA_STYLE' in os.environ:
@@ -173,6 +176,8 @@ def Index():
 	s('TTS_TOKEN', tts_token)
 #	Initialize POSTS list
 	s('POSTS',[])
+#	Initialize session vars related to predictive models
+	s('PREDICTIVE_MODEL', json.loads(PREDICTIVE_MODEL))
 #	Call conversation service/post response
 	message = converse({})
 	post_watson_response(format_text(message))
@@ -185,9 +190,16 @@ def Index_Post():
 	question = request.form[QUESTION_INPUT]
 	post_user_input(question)
 #	Get conversation response
-	message = create_message(question, {})
-	message = converse(message)
-	application_message = get_application_message(message)
+	context = {}
+	while True:
+		message = create_message(question, context)
+		message = converse(message)
+		application_message = get_application_message(message)
+		if application_message['context'] == {}:
+			break
+		else:
+			context = application_message['context']
+			question = application_message['chat']
 #	Display and render application_message
 	post_watson_response(application_message['chat'])
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=application_message['form'], stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
@@ -211,7 +223,6 @@ def Form_Post():
 def Page_Post():
 	global CHAT_TEMPLATE, CURSOR_INPUT, SEARCH_TYPE_INPUT
 	form = ''
-	tips = ''
 #	Set vars from hidden form fields
 	action = request.form[CURSOR_INPUT]
 	search_type = request.form[SEARCH_TYPE_INPUT]

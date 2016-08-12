@@ -1,3 +1,5 @@
+
+
 {
   "name": "Watson-Call-Center",
   "created": "2016-07-12T17:30:58.442Z",
@@ -529,7 +531,7 @@
   ],
   "language": "en",
   "metadata": null,
-  "modified": "2016-08-06T13:56:45.987Z",
+  "modified": "2016-08-12T04:52:43.544Z",
   "created_by": null,
   "description": "Conversational engine for the demo application highlighting the Watson API's in a call center context.",
   "modified_by": null,
@@ -579,6 +581,20 @@
     {
       "go_to": null,
       "output": {
+        "text": "Can we change your mind by offering you this attractive $C_Responded_Campaign. (The predictive model shows a propensity to accept of $CC_Responded_Campaign)"
+      },
+      "parent": "node_1_1470379888629",
+      "context": null,
+      "created": "2016-08-12T04:47:26.873Z",
+      "metadata": null,
+      "conditions": "$CC_Responded_Campaign > 0.8",
+      "description": null,
+      "dialog_node": "node_8_1470977251310",
+      "previous_sibling": null
+    },
+    {
+      "go_to": null,
+      "output": {
         "text": "Click HERE to reset your password."
       },
       "parent": "node_16_1468361200526",
@@ -593,7 +609,7 @@
     {
       "go_to": null,
       "output": {
-        "text": "(--EVALUATE_PREDICTIVE_MODEL--)Can we encourage you to stay with an enticing retention offer?"
+        "text": "(--EVALUATE_PREDICTIVE_MODEL--)"
       },
       "parent": null,
       "context": {
@@ -771,13 +787,27 @@
     {
       "go_to": null,
       "output": {
+        "text": "We certainly hope you reconsider, but you can close out your account by clicking <a>here<\/a>"
+      },
+      "parent": "node_1_1470379888629",
+      "context": null,
+      "created": "2016-08-12T04:50:01.012Z",
+      "metadata": null,
+      "conditions": "true",
+      "description": null,
+      "dialog_node": "node_9_1470977405383",
+      "previous_sibling": "node_8_1470977251310"
+    },
+    {
+      "go_to": null,
+      "output": {
         "text": "What else may I assist you with then?"
       },
       "parent": "node_17_1468362300489",
       "context": null,
       "created": "2016-07-27T22:53:19.338Z",
       "metadata": null,
-      "conditions": null,
+      "conditions": "true",
       "description": null,
       "dialog_node": "node_3_1469660001810",
       "previous_sibling": "node_18_1468362453927"
@@ -817,3 +847,4 @@
   ],
   "workspace_id": "74977afb-0288-4ad7-98dc-ab2c5f226f3a"
 }
+

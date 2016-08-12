@@ -14,12 +14,6 @@ import custom, watson
 # GLOBAL VARIABLES -------------------------------
 # ------------------------------------------------
 #####
-# Overwrites by env variables
-#####
-#RANDR_SEARCH_ARGS = 'id,ShortDescription,Text'
-#if 'RANDR_SEARCH_ARGS' in os.environ:
-#	RANDR_SEARCH_ARGS = os.environ['RANDR_SEARCH_ARGS']
-#####
 # Tokens
 #####
 SEARCH_WITH_RANDR = '(--SEARCH_WITH_RANDR--)'
@@ -41,11 +35,11 @@ BODY = {}
 # in external modules
 #####
 populate_entity_from_randr_result = custom.populate_entity_from_randr_result
-respond_to_predictive_model = custom.respond_to_predictive_model
 markup_randr_results = custom.markup_randr_results
 populate_entity_from_wex_result = custom.populate_entity_from_wex_result
 markup_wex_results = custom.markup_wex_results
 #get_custom_response = custom.get_custom_response
+set_predictive_model_context = custom.set_predictive_model_context
 BMIX_evaluate_predictive_model = watson.BMIX_evaluate_predictive_model
 BMIX_retrieve_and_rank = watson.BMIX_retrieve_and_rank
 WEX_retrieve = watson.WEX_retrieve
@@ -207,8 +201,6 @@ def get_application_message(message):
 	chat = get_chat(formatted_text)
 	form = get_form(formatted_text)
 	context = {}
-	if 'context' in message:
-		context = message['context']
 	#application_message
 	application_message = {'chat': chat, 'form': form, 'context': context}
 	for key in HASH_VALUES:
@@ -226,6 +218,7 @@ def get_application_message(message):
 	if (application_message['chat'].startswith(EVALUATE_PREDICTIVE_MODEL)):
 		application_message['chat'] = application_message['chat'].replace(EVALUATE_PREDICTIVE_MODEL, '')
 		model = extract_predictive_model(message)
+		#model = g('PREDICTIVE_MODEL', {})
 		entity = BMIX_evaluate_predictive_model(model)
-		application_message['chat'] = respond_to_predictive_model(entity)
+		application_message['context'] = set_predictive_model_context(entity)
 	return application_message

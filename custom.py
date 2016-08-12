@@ -61,11 +61,14 @@ def markup_wex_results(search_results, cursor):
 	#custom_response = application_response
 	#return custom_response
 
-def respond_to_predictive_model(entity):
-	response = "Can we entice you to stay with an attractive retention offer?"
+def set_predictive_model_context(entity):
+	context = {}
 	if type(entity) is list:
 		campaign = entity[0]
-		offer_type = campaign['data'][0][0]
-		offer_propensity = campaign['data'][0][1]
-		response = response + ' [Predicitve model shows a propensity of ' + str(offer_propensity) + ' that the customer will respond to a ' + offer_type + ']'
-	return response
+		attr_names = campaign['header']
+		attr_values = campaign['data'][0]
+		i = 0
+		for attr_name in attr_names:
+			context[attr_name.replace('$', '').replace(' ', '_').replace('-', '_')] = attr_values[i]
+			i += 1
+	return context
