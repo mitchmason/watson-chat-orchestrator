@@ -50,6 +50,8 @@ RETRIEVE_AND_RANK_USERNAME = '286585e0-a6fd-4d52-973e-e3a9da68faa3'
 RETRIEVE_AND_RANK_PASSWORD = 'MVZTcnP4ibDN'
 RANDR_SEARCH_ARGS = 'id,body,title,author,RunBook_URL'
 WEX_URL = 'http://10.72.19.40/vivisimo/cgi-bin/velocity.exe?v.function=query-search&v.indent=true&query=[##QUERY_STR##]&sources=LAMR-all-filesystem&v.app=api-rest&authorization-username=admin&authorization-password=admin&v.username=data-explorer-admin&v.password=TH1nk1710'
+CASTIRON_USERNAME = ''
+CASTIRON_PASSWORD = ''
 CIRON_URL_GET_ASSET_ACTIVATION_CODE = 'https://provide.castiron.ibmcloud.com/env/Development/getActivationCode'
 CIRON_URL_CREATE_CASE = 'https://provide.castiron.ibmcloud.com/env/Development/createCase'
 CIRON_URL_ACTIVATION = 'https://provide.castiron.ibmcloud.com/env/Development/getAssetContacts?serialNumber='
@@ -58,6 +60,10 @@ CIRON_URL_GET_SERIAL = 'https://provide.castiron.ibmcloud.com/env/Development/ge
 #####
 # Overwrites by env variables
 #####
+if 'CASTIRON_USERNAME' in os.environ:
+	CASTIRON_USERNAME = os.environ['CASTIRON_USERNAME']
+if 'CASTIRON_PASSWORD' in os.environ:
+	CASTIRON_PASSWORD = os.environ['CASTIRON_PASSWORD']
 if 'PREDICTIVE_ANALYTICS_CONTEXT_ID' in os.environ:
 	PREDICTIVE_ANALYTICS_CONTEXT_ID = os.environ['PREDICTIVE_ANALYTICS_CONTEXT_ID']
 if 'TONE_ANALYZER_VERSION' in os.environ:
