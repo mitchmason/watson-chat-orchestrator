@@ -151,7 +151,35 @@ button, input[type="submit"] {
 				padding: .3em .5em;
 				font-size: 16px;
 			}
-
+/* DSA insert-begin */
+	.faq div form {
+		margin: 0;
+		padding: 0;
+	}
+		.faq div form p {
+			margin-bottom: .8em;
+		}
+			.faq div form em {
+				display: inline-block;
+			/*	margin-bottom: .5em; */
+				font-size: 14px;
+				color: #999;
+			}
+			.faq div form p span {
+				display: inline-block;
+				margin-bottom: .2em;
+			}
+			.faq div form p input {
+				width: 100%;
+				padding: .3em .5em;
+				font-size: 16px;
+			}
+			.faq div form p select {
+				width: 100%;
+				padding: .3em .5em;
+				font-size: 16px;
+			}
+/* DSA insert-end */
 /* Footer */
 footer {
 	clear: both;

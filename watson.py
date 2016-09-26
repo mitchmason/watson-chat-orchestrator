@@ -22,8 +22,10 @@ ALCHEMY_API_APIKEY = '7a8d2df42fa9b01ba175bf827316c1c55ba46405'
 TONE_ANALYZER_VERSION = '2016-05-19'
 TONE_ANALYZER_USERNAME = '489c7b4b-ecd2-46fd-9fbd-9c86f88beced'
 TONE_ANALYZER_PASSWORD = 'QYpAOVI483BN'
-#Call center
-CONVERSATION_WORKSPACE_ID = '74977afb-0288-4ad7-98dc-ab2c5f226f3a'
+#Call center.v1
+#CONVERSATION_WORKSPACE_ID = '74977afb-0288-4ad7-98dc-ab2c5f226f3a'
+#Call center.v2
+CONVERSATION_WORKSPACE_ID = '4dcf0368-4f48-4b0d-8147-e772bb3abe2e'
 #Drive-through bot
 #CONVERSATION_WORKSPACE_ID = '20c4d294-28a4-494f-9d19-503a3d5155de'
 #Public Sector Password reset
@@ -48,15 +50,16 @@ RETRIEVE_AND_RANK_USERNAME = '286585e0-a6fd-4d52-973e-e3a9da68faa3'
 RETRIEVE_AND_RANK_PASSWORD = 'MVZTcnP4ibDN'
 RANDR_SEARCH_ARGS = 'id,body,title,author,RunBook_URL'
 WEX_URL = 'http://10.72.19.40/vivisimo/cgi-bin/velocity.exe?v.function=query-search&v.indent=true&query=[##QUERY_STR##]&sources=LAMR-all-filesystem&v.app=api-rest&authorization-username=admin&authorization-password=admin&v.username=data-explorer-admin&v.password=TH1nk1710'
+CIRON_URL_GET_ASSET_ACTIVATION_CODE = 'https://provide.castiron.ibmcloud.com/env/Development/getActivationCode'
+CIRON_URL_CREATE_CASE = 'https://provide.castiron.ibmcloud.com/env/Development/createCase'
+CIRON_URL_ACTIVATION = 'https://provide.castiron.ibmcloud.com/env/Development/getAssetContacts?serialNumber='
+CIRON_URL_GET_SERIAL = 'https://provide.castiron.ibmcloud.com/env/Development/getLicense'
+
 #####
 # Overwrites by env variables
 #####
 if 'PREDICTIVE_ANALYTICS_CONTEXT_ID' in os.environ:
 	PREDICTIVE_ANALYTICS_CONTEXT_ID = os.environ['PREDICTIVE_ANALYTICS_CONTEXT_ID']
-#if 'PREDICTIVE_ANALYTICS_ACCESS_KEY' in os.environ:
-	#PREDICTIVE_ANALYTICS_ACCESS_KEY = os.environ['PREDICTIVE_ANALYTICS_ACCESS_KEY']
-#if 'ALCHEMY_API_APIKEY' in os.environ:
-	#ALCHEMY_API_APIKEY = os.environ['ALCHEMY_API_APIKEY']
 if 'TONE_ANALYZER_VERSION' in os.environ:
 	TONE_ANALYZER_VERSION = os.environ['TONE_ANALYZER_VERSION']
 if 'CONVERSATION_WORKSPACE_ID' in os.environ:
@@ -114,10 +117,6 @@ if 'VCAP_SERVICES' in os.environ:
 			retrieve_and_rank = vcap_services['retrieve_and_rank'][0]
 			RETRIEVE_AND_RANK_USERNAME = retrieve_and_rank["credentials"]["username"]
 			RETRIEVE_AND_RANK_PASSWORD = retrieve_and_rank["credentials"]["password"]
-#####
-# Tokens
-#####
-
 # ------------------------------------------------
 # FUNCTIONS --------------------------------------
 # ------------------------------------------------
@@ -125,6 +124,26 @@ if 'VCAP_SERVICES' in os.environ:
 # local
 #####
 # Encapsulate BMIX services plus helper funcs ----
+def CIRON_get_asset_activation_code(data):
+	global CIRON_URL_GET_ASSET_ACTIVATION_CODE, CASTIRON_USERNAME, CASTIRON_PASSWORD
+	POST_SUCCESS = 200
+	print('---data')
+	print(data)
+	castiron_response = {}
+	url = CIRON_URL_GET_ASSET_ACTIVATION_CODE
+	r = requests.post(url, auth=(CASTIRON_USERNAME, CASTIRON_PASSWORD), data=data)
+	print('---r.text')
+	print(r.text)
+	print('---status-code activation code')
+	print(r.status_code)
+	if r.status_code == POST_SUCCESS:
+		castiron_response = r.json()
+		print('--Status_Message Get Asset')
+		print(castiron_response['Status_Message'])
+	else:
+		castiron_response['Status_Message'] = 'Cast Iron service call failed with return code: ' + r.status_code + ']'
+	return castiron_response
+
 def BMIX_evaluate_predictive_model(model):
 	global PREDICTIVE_ANALYTICS_ACCESS_KEY, PREDICTIVE_ANALYTICS_CONTEXT_ID
 	POST_SUCCESS = 200
@@ -236,9 +255,11 @@ def WEX_retrieve(question):
 	return docs
 
 def get_stt_token():
+	global STT_USERNAME, STT_PASSWORD
 	return Authorization(username=STT_USERNAME, password=STT_PASSWORD).get_token(url=SpeechToText.default_url)
 
 def get_tts_token():
+	global TTS_USERNAME, TTS_PASSWORD
 	return Authorization(username=TTS_USERNAME, password=TTS_PASSWORD).get_token(url=TextToSpeech.default_url)
 
 # Helper funcs -----------------------------------

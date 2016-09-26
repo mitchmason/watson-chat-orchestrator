@@ -5,48 +5,157 @@
 # Python dist and 3rd party libraries
 #####
 import os, requests, json, string, datetime, csv
-from flask import session
+#from flask import session
 #####
 # Other python modules in WEA demo framework
 #####
-import custom, watson
+import custom, watson, session
 # ------------------------------------------------
 # GLOBAL VARIABLES -------------------------------
 # ------------------------------------------------
+######
+# Hardcoded env variable defaults for testing
 #####
+PERSONA_NAME = 'Partner'
+PERSONA_IMAGE = ''
+PERSONA_STYLE = 'Partner'
+WATSON_IMAGE = ''
+WATSON_STYLE = 'Watson'
+CHAT_TEMPLATE = 'designer-index.html'
+QUESTION_INPUT = 'response_input'
+CURSOR_INPUT = 'cursor_input'
+FORM_INPUT = 'form_input'
+SEARCH_TYPE_INPUT = 'search-type'
+SEARCH_VALUE_INPUT = 'search-values'
+WKS_ANNOTATOR_MODEL_ID = None
+#WKS_ANNOTATOR_MODEL_ID = '0da4b1b6-00fe-4cf9-bbae-10a5d1777094'
+#####
+# Overwrites by env variables
+#####
+if 'PERSONA_NAME' in os.environ:
+	PERSONA_NAME = os.environ['PERSONA_NAME']
+if 'PERSONA_IMAGE' in os.environ:
+	PERSONA_IMAGE = os.environ['PERSONA_IMAGE']
+if 'PERSONA_STYLE' in os.environ:
+	PERSONA_STYLE = os.environ['PERSONA_STYLE']
+if 'WATSON_IMAGE' in os.environ:
+	WATSON_IMAGE = os.environ['WATSON_IMAGE']
+if 'WATSON_STYLE' in os.environ:
+	WATSON_STYLE = os.environ['WATSON_STYLE']
+if 'CHAT_TEMPLATE' in os.environ:
+	CHAT_TEMPLATE = os.environ['CHAT_TEMPLATE']
+if 'QUESTION_INPUT' in os.environ:
+	QUESTION_INPUT = os.environ['QUESTION_INPUT']
+if 'CURSOR_INPUT' in os.environ:
+	CURSOR_INPUT = os.environ['CURSOR_INPUT']
+if 'FORM_INPUT' in os.environ:
+	FORM_INPUT = os.environ['FORM_INPUT']
+if 'SEARCH_TYPE_INPUT' in os.environ:
+	SEARCH_TYPE_INPUT = os.environ['SEARCH_TYPE_INPUT']
+if 'SEARCH_VALUE_INPUT' in os.environ:
+	SEARCH_VALUE_INPUT = os.environ['SEARCH_VALUE_INPUT']
+if 'WKS_ANNOTATOR_MODEL_ID' in os.environ:
+	WKS_ANNOTATOR_MODEL_ID = os.environ['WKS_ANNOTATOR_MODEL_ID']
+####
 # Tokens
 #####
 SEARCH_WITH_RANDR = '(--SEARCH_WITH_RANDR--)'
 SEARCH_WITH_WEX = '(--SEARCH_WITH_WEX--)'
 EVALUATE_PREDICTIVE_MODEL = '(--EVALUATE_PREDICTIVE_MODEL--)'
 PRESENT_FORM = '(--FORM--)'
-#####
-# Replacement Strings
-#####
-#PRODUCT_NAME_OPTIONS_DEFAULT = "[option value='Product_Name']...Select...[/option]"
-#PRODUCT_NAME_OPTIONS_POPULATED = ''
-HASH_VALUES = {}
-BODY = {}
-
 # ------------------------------------------------
 # FUNCTIONS --------------------------------------
 # ------------------------------------------------
 #####
 # in external modules
 #####
+s = session.s
+g = session.g
 populate_entity_from_randr_result = custom.populate_entity_from_randr_result
 markup_randr_results = custom.markup_randr_results
 populate_entity_from_wex_result = custom.populate_entity_from_wex_result
 markup_wex_results = custom.markup_wex_results
-#get_custom_response = custom.get_custom_response
-set_predictive_model_context = custom.set_predictive_model_context
+set_context_from_predictive_model = custom.set_context_from_predictive_model
+BMIX_converse = watson.BMIX_converse
+BMIX_get_first_dialog_response_json = watson.BMIX_get_first_dialog_response_json
+BMIX_get_next_dialog_response = watson.BMIX_get_next_dialog_response
+BMIX_call_alchemy_api = watson.BMIX_call_alchemy_api
 BMIX_evaluate_predictive_model = watson.BMIX_evaluate_predictive_model
 BMIX_retrieve_and_rank = watson.BMIX_retrieve_and_rank
 WEX_retrieve = watson.WEX_retrieve
-
 #####
 # local
 #####
+# Chat presentation funcs ------------------------
+def create_post(style, icon, text, datetime, name):
+	post = {}
+	post['style'] = style
+	post['icon'] = icon
+	post['text'] = text
+	post['datetime'] = datetime
+	post['name'] = name
+	return post
+
+def post_watson_response(response):
+	global WATSON_STYLE, WATSON_IMAGE 
+	now = datetime.datetime.now()
+	post = create_post(WATSON_STYLE, WATSON_IMAGE, response, now.strftime('%Y-%m-%d %H:%M'), 'Watson')
+	g('POSTS',[]).append(post)
+	return post
+
+def post_user_input(input):
+	global PERSONA_STYLE, PERSONA_IMAGE, PERSONA_NAME
+	now = datetime.datetime.now()
+	post = create_post(PERSONA_STYLE, PERSONA_IMAGE, input, now.strftime('%Y-%m-%d %H:%M'), PERSONA_NAME)
+	g('POSTS',[]).append(post)
+	return post
+
+# Watson helper funcs ----------------------------
+def create_message(question, context):
+	message = {}
+	message['context'] = {}
+	message['input'] = json.loads('{"text": "' + question + '"}')
+	last_message = json.loads(g('MESSAGE', '{}'))
+	if 'context' in last_message:
+		message['context'] = last_message['context']
+	for key in context:
+		message['context'][key] = context[key]
+	return message
+
+def converse(message):
+	message = BMIX_converse(message)
+	s('MESSAGE', json.dumps(message))
+	return message
+
+# Context helper funcs ---------------------------
+def set_context_from_chat(question):
+	global WKS_ANNOTATOR_MODEL_ID
+	context = {}
+	if WKS_ANNOTATOR_MODEL_ID is not None:
+		parameters = {}
+		parameters['text'] = question.encode('ascii','ignore')
+		parameters['extract'] = 'entities'
+		parameters['disambiguate'] = '1'
+		parameters['model'] = WKS_ANNOTATOR_MODEL_ID
+		response = BMIX_call_alchemy_api('/text/TextGetRankedNamedEntities', parameters)
+		for entity in response['entities']:
+			entity_type = entity['type']
+			entity_text = entity['text'].encode('ascii','ignore')
+			if entity_type not in context:
+				context[entity_type] = entity_text
+			elif type(context[entity_type]) is str:
+				context[entity_type] = [context[entity_type]]
+				context[entity_type].append(entity_text)
+			else:
+				context[entity_type].append(entity_text)
+	return context
+
+def set_context_from_form(form):
+	context = {}
+	for field in form:
+		context[field] = form[field]
+	return context
+
 # Search helper funcs ----------------------------
 def get_search_response(search_type, shift):
 	search_response = ''
@@ -63,7 +172,6 @@ def search_randr(question):
 	randr_search_results = []
 	randr_cursor = 0
 	application_response = ''
-	#docs = BMIX_retrieve_and_rank(question, RANDR_SEARCH_ARGS)
 	docs = BMIX_retrieve_and_rank(question)
 	i = 0
 	for doc in docs:
@@ -98,35 +206,6 @@ def shift_cursor(search_results, cursor, shift):
 		cursor = 0
 	return cursor
 	
-# Replacement str funcs --------------------------
-def load_hash_values(app):
-	hash_values = {}
-	with app.open_resource('hash.csv') as csvfile:
-		reader = csv.DictReader(csvfile)
-		for row in reader:
-			hash_values[row['key']] = row['value']
-	return hash_values
-
-def build_options(app, file_name, var_name):
-	options = ''
-	with app.open_resource(file_name) as csvfile:
-		reader = csv.DictReader(csvfile)
-		for row in reader:
-			options = options + '[option value="' + row[var_name] + '"]' + row[var_name] + '[/option]'
-	return options
-	
-# TOA helper func --------------------------------
-def load_body(app):
-	body = {}
-	#with app.open_resource('body.json', 'r') as myfile:
-	#	json_data = myfile.read()
-	#	body = json.loads(json_data)
-	return body
-
-def get_body():
-	global BODY
-	return BODY
-
 def extract_search_arg(message):
 	search_arg = ''
 	if 'input' in message:
@@ -144,24 +223,7 @@ def extract_predictive_model(message):
 			model = context['predictive_model']
 	return model
 
-# Session var set and get funcs ------------------
-def s(key, value):
-	session[key] = value
-	return session[key]
-
-def g(key, default_value):
-	if not key in session.keys():
-		session[key] = default_value
-	return session[key]
-
 # Application funcs ------------------------------
-def register_application(app):
-	#global HASH_VALUES, PRODUCT_NAME_OPTIONS_POPULATED
-	global HASH_VALUES
-	#PRODUCT_NAME_OPTIONS_POPULATED = build_options(app, 'Product-Names.csv', 'Product_Name')
-	HASH_VALUES = load_hash_values(app)
-	return app
-	
 def format_text(message):
 	formatted_text = 'The chat-bot is not currently available. Try again?'
 	if 'output' in message:
@@ -193,19 +255,18 @@ def get_chat(text):
 		chat = responses[0]
 	return chat
 	
+def create_application_message(chat, form, context):
+	return {'chat': chat, 'form': form, 'context': context}
+
 def get_application_message(message):
-	global HASH_VALUES
 	formatted_text = format_text(message)
-	formatted_text = string.replace(formatted_text, '[', '<')
-	formatted_text = string.replace(formatted_text, ']', '>')
+	#formatted_text = string.replace(formatted_text, '[', '<')
+	#formatted_text = string.replace(formatted_text, ']', '>')
 	chat = get_chat(formatted_text)
 	form = get_form(formatted_text)
 	context = {}
 	#application_message
 	application_message = {'chat': chat, 'form': form, 'context': context}
-	for key in HASH_VALUES:
-		value = HASH_VALUES[key]
-		application_message['chat'] = application_message['chat'].replace(key, value)
 	#randr search requested
 	if (application_message['chat'].startswith(SEARCH_WITH_RANDR)):
 		search_arg = extract_search_arg(message)
@@ -218,7 +279,6 @@ def get_application_message(message):
 	if (application_message['chat'].startswith(EVALUATE_PREDICTIVE_MODEL)):
 		application_message['chat'] = application_message['chat'].replace(EVALUATE_PREDICTIVE_MODEL, '')
 		model = extract_predictive_model(message)
-		#model = g('PREDICTIVE_MODEL', {})
 		entity = BMIX_evaluate_predictive_model(model)
-		application_message['context'] = set_predictive_model_context(entity)
+		application_message['context'] = set_context_from_predictive_model(entity)
 	return application_message

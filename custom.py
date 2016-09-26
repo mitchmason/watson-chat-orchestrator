@@ -1,3 +1,9 @@
+# ------------------------------------------------
+# IMPORTS ----------------------------------------
+# ------------------------------------------------
+#####
+# Python dist and 3rd party libraries
+#####
 import os, requests, json, string, datetime, csv
 from pprint import pprint
 import xmltodict
@@ -5,8 +11,9 @@ import xmltodict
 # FUNCTIONS --------------------------------------
 # ------------------------------------------------
 #####
-# in external modules
+# local
 #####
+# Search helper funcs ----------------------------
 def populate_entity_from_randr_result(doc):
 	entity = {}
 	entity['id'] = doc['id']
@@ -16,10 +23,6 @@ def populate_entity_from_randr_result(doc):
 	entity['RunBook_URL'] = doc['RunBook_URL'][0]
 	return entity
 
-#####
-# local
-#####
-# Search helper funcs ----------------------------
 def markup_randr_result(entity):
 	return ('<p><b>' + entity['title'] + '</b><br><u>Body:</u> ' + entity['body'] + '<br><u>Runbook URL:</u> ' + entity['RunBook_URL'] + '<br><u>Document id:</u> ' + entity['id']+ '</p>')
 		
@@ -29,7 +32,7 @@ def markup_randr_results(search_results, cursor):
 		entity = search_results[cursor]
 		application_response = "I've retrieved <b>" + str(len(search_results)) + " documents</b> that may be of interest. You're viewing document number <b>#" + str(cursor + 1) + "</b>"
 		application_response = application_response + markup_randr_result(entity)
-		application_response = application_response + '<form action="/page" method="POST"><input type="submit" name="cursor-input" value="Next"/> <input type="submit" name="cursor-input" value="Prev"/> <input type="submit" type="submit" name="cursor-input" value="Accept"/> <input type="hidden" name="search-type" value="RANDR"></form>'
+		application_response = application_response + '<form action="/page" method="POST"><input type="submit" name="cursor_input" value="Next"/> <input type="submit" name="cursor_input" value="Prev"/> <input type="submit" type="submit" name="cursor_input" value="Accept"/> <input type="hidden" name="search-type" value="RANDR"></form>'
 	return application_response
 	
 def populate_entity_from_wex_result(doc):
@@ -54,14 +57,11 @@ def markup_wex_results(search_results, cursor):
 		application_response = "I've found the answer to your question in <b>" + str(len(search_results)) + " documents</b> with the most probable answers shown first. You're viewing answer <b>#" + str(cursor + 1) + "</b>"
 		url = entity['Url']
 		application_response = application_response + '<p style="font-size: small;"><i>' + entity['Snippet'] + '</i> <a href="' + url + '" style="font-size: small;" target="_blank">View document</a></p>'
-		application_response = application_response + '<form action="/page" method="POST"><input type="submit" name="cursor-input" value="Next"/> <input type="submit" name="cursor-input" value="Prev"/> <input type="submit" type="submit" name="cursor-input" value="Accept"/> <input type="hidden" name="search-type" value="WEX"></form>'
+		application_response = application_response + '<form action="/page" method="POST"><input type="submit" name="cursor_input" value="Next"/> <input type="submit" name="cursor_input" value="Prev"/> <input type="submit" type="submit" name="cursor_input" value="Accept"/> <input type="hidden" name="search-type" value="WEX"></form>'
 	return application_response
 	
-#def get_custom_response(application_response):
-	#custom_response = application_response
-	#return custom_response
-
-def set_predictive_model_context(entity):
+# Context helper funcs ---------------------------
+def set_context_from_predictive_model(entity):
 	context = {}
 	if type(entity) is list:
 		campaign = entity[0]

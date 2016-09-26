@@ -1,7 +1,7 @@
-# Watson Engagement Advisor (WEA) Demo Framework using Watson Develop Cloud Services
+# Watson Conversation Demo Framework (an orchestration engine Watson Developer Cloud services and exeternal services)
 
 ## Create demos with automated conversation
-This demo framework leverages the **Dialog**, **Natural Language Classifier**, **Retrieve and Rank**, ""Text to Speech**, and **Speech to Text** services. Powered by Watson, these services allow for a personalized experience in which users can engage in natural, human-like conversations with the chat engine.
+This demo framework leverages the **Conversation**, **Retrieve and Rank**, ""Text to Speech**, **Speech to Text** and **Predictive Analytics** services. Powered by Watson, these services allow for a personalized experience in which users can engage in natural, human-like conversations with the chat engine.
 
 ## Create accounts and log in
 

@@ -34,14 +34,14 @@
 				<!-- Additions for TTS & STT -->
 				<p><input id="voice" type="checkbox" /> Use voice</p>
 				<form class="chat--input" action='.' method='POST'>
-					<input autofocus id="response-input" name='response-input' placeholder="Ask IBM a question..."></input>
+					<input autofocus id="response_input" name='response_input' placeholder="Ask IBM a question..."></input>
 					<button name='send-button'>Send</button>
 				</form>
 			</main>
 			<aside>
 				<section class="faq">
 					<h3>Form &#38; FAQ</h3>
-					<div>{% autoescape false %}{{form}}{% endautoescape %}</div>
+					<div>{% autoescape false %}{% if form != '' %}{% include form %}{% endif %}{% endautoescape %}</div>
 				</section>			
 				<section class="tips">
 					<h3>Tips</h3>
@@ -65,7 +65,7 @@
 					token: sttToken,
 				//	automatically stop at first pause
 					continuous: false,
-					outputElement: '#response-input',
+					outputElement: '#response_input',
 				//	don't add capitalization and periods to the input text
 					format: false
 				//	if using ajax to submit audio, this makes firefox only ask for mic permission once
@@ -119,11 +119,11 @@
 				}
 			/*	
 				$("button[name='send-button']").prop('disabled',true);
-				$('#response-input').bind('input', function(){
+				$('#response_input').bind('input', function(){
 					$("button[name='send-btton']").prop('disabled', this.value == "" ? true : false);     
 				});
 			*/
-			//	$('#response-input').keyup(function(){
+			//	$('#response_input').keyup(function(){
 			//		$("button[name='send-button']").prop('disabled', this.value == "" ? true : false);     
 			//	})
 				
