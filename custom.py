@@ -25,7 +25,7 @@ def populate_entity_from_randr_result(doc):
 
 def markup_randr_result(entity):
 	return ('<p><b>' + entity['title'] + '</b><br><u>Body:</u> ' + entity['body'] + '<br><u>Runbook URL:</u> ' + entity['RunBook_URL'] + '<br><u>Document id:</u> ' + entity['id']+ '</p>')
-		
+
 def markup_randr_results(search_results, cursor):
 	application_response = "I'm unable to find what you're looking for. Can you rephrase the question or ask something else?"
 	if (len(search_results) > 0):
@@ -34,7 +34,7 @@ def markup_randr_results(search_results, cursor):
 		application_response = application_response + markup_randr_result(entity)
 		application_response = application_response + '<form action="/page" method="POST"><input type="submit" name="cursor_input" value="Next"/> <input type="submit" name="cursor_input" value="Prev"/> <input type="submit" type="submit" name="cursor_input" value="Accept"/> <input type="hidden" name="search-type" value="RANDR"></form>'
 	return application_response
-	
+
 def populate_entity_from_wex_result(doc):
 	entity = {}
 	entity['Url'] = doc['@url']
@@ -49,7 +49,7 @@ def populate_entity_from_wex_result(doc):
 		if name == 'filename':
 			entity['FileName'] = content['#text']
 	return entity
-		
+
 def markup_wex_results(search_results, cursor):
 	application_response = "I'm unable to find what you're looking for. Can you rephrase the question or ask something else?"
 	if (len(search_results) > 0):
@@ -59,8 +59,13 @@ def markup_wex_results(search_results, cursor):
 		application_response = application_response + '<p style="font-size: small;"><i>' + entity['Snippet'] + '</i> <a href="' + url + '" style="font-size: small;" target="_blank">View document</a></p>'
 		application_response = application_response + '<form action="/page" method="POST"><input type="submit" name="cursor_input" value="Next"/> <input type="submit" name="cursor_input" value="Prev"/> <input type="submit" type="submit" name="cursor_input" value="Accept"/> <input type="hidden" name="search-type" value="WEX"></form>'
 	return application_response
-	
-# Context helper funcs ---------------------------
+
+# Predictive Analytics helper funcs --------------
+def set_predictive_model_from_context(context):
+	model = {}
+#	implement code to build predictive model from context
+	return model
+
 def set_context_from_predictive_model(entity):
 	context = {}
 	if type(entity) is list:
@@ -72,3 +77,12 @@ def set_context_from_predictive_model(entity):
 			context[attr_name.replace('$', '').replace(' ', '_').replace('-', '_')] = attr_values[i]
 			i += 1
 	return context
+
+# Custom service func ----------------------------
+def invoke_custom_service(message_context, custom_service_label):
+	application_context = {}
+#	implement code for custom service
+	#if custom_service_label == <custom_service_label>:
+	if custom_service_label != "":
+		application_context['custom_service_label'] = 'testing...1,2,3'
+	return application_context

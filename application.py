@@ -9,7 +9,7 @@ import os, requests, json, string, datetime, csv
 #####
 # Other python modules in WEA demo framework
 #####
-import custom, watson, session
+import custom, watson, session, lookup
 # ------------------------------------------------
 # GLOBAL VARIABLES -------------------------------
 # ------------------------------------------------
@@ -28,7 +28,7 @@ FORM_INPUT = 'form_input'
 SEARCH_TYPE_INPUT = 'search-type'
 SEARCH_VALUE_INPUT = 'search-values'
 WKS_ANNOTATOR_MODEL_ID = None
-#WKS_ANNOTATOR_MODEL_ID = '0da4b1b6-00fe-4cf9-bbae-10a5d1777094'
+#WKS_ANNOTATOR_MODEL_ID = 'ec91da29-60fd-4ba2-8d87-0a8e0be712ef'
 #####
 # Overwrites by env variables
 #####
@@ -62,6 +62,7 @@ if 'WKS_ANNOTATOR_MODEL_ID' in os.environ:
 SEARCH_WITH_RANDR = '(--SEARCH_WITH_RANDR--)'
 SEARCH_WITH_WEX = '(--SEARCH_WITH_WEX--)'
 EVALUATE_PREDICTIVE_MODEL = '(--EVALUATE_PREDICTIVE_MODEL--)'
+INVOKE_CUSTOM_SERVICE = '(--INVOKE_CUSTOM_SERVICE--)'
 PRESENT_FORM = '(--FORM--)'
 # ------------------------------------------------
 # FUNCTIONS --------------------------------------
@@ -69,13 +70,13 @@ PRESENT_FORM = '(--FORM--)'
 #####
 # in external modules
 #####
-s = session.s
-g = session.g
 populate_entity_from_randr_result = custom.populate_entity_from_randr_result
 markup_randr_results = custom.markup_randr_results
 populate_entity_from_wex_result = custom.populate_entity_from_wex_result
 markup_wex_results = custom.markup_wex_results
 set_context_from_predictive_model = custom.set_context_from_predictive_model
+set_predictive_model_from_context = custom.set_predictive_model_from_context
+invoke_custom_service = custom.invoke_custom_service
 BMIX_converse = watson.BMIX_converse
 BMIX_get_first_dialog_response_json = watson.BMIX_get_first_dialog_response_json
 BMIX_get_next_dialog_response = watson.BMIX_get_next_dialog_response
@@ -83,6 +84,9 @@ BMIX_call_alchemy_api = watson.BMIX_call_alchemy_api
 BMIX_evaluate_predictive_model = watson.BMIX_evaluate_predictive_model
 BMIX_retrieve_and_rank = watson.BMIX_retrieve_and_rank
 WEX_retrieve = watson.WEX_retrieve
+s = session.s
+g = session.g
+substitute_hash_values = lookup.substitute_hash_values
 #####
 # local
 #####
@@ -132,12 +136,15 @@ def set_context_from_chat(question):
 	global WKS_ANNOTATOR_MODEL_ID
 	context = {}
 	if WKS_ANNOTATOR_MODEL_ID is not None:
+		print('--Calling Alchemy')
 		parameters = {}
 		parameters['text'] = question.encode('ascii','ignore')
 		parameters['extract'] = 'entities'
 		parameters['disambiguate'] = '1'
 		parameters['model'] = WKS_ANNOTATOR_MODEL_ID
 		response = BMIX_call_alchemy_api('/text/TextGetRankedNamedEntities', parameters)
+		print('--response')
+		print(response)
 		for entity in response['entities']:
 			entity_type = entity['type']
 			entity_text = entity['text'].encode('ascii','ignore')
@@ -148,6 +155,8 @@ def set_context_from_chat(question):
 				context[entity_type].append(entity_text)
 			else:
 				context[entity_type].append(entity_text)
+		print('--context')
+		print(context)
 	return context
 
 def set_context_from_form(form):
@@ -214,6 +223,12 @@ def extract_search_arg(message):
 			search_arg = input['text']
 	return search_arg
 
+def extract_context(message):
+	context = {}
+	if 'context' in message:
+		context = message['context']
+	return context
+
 # Predictive Analytics helper funcs --------------
 def extract_predictive_model(message):
 	model = {}
@@ -221,6 +236,8 @@ def extract_predictive_model(message):
 		context = message['context']
 		if 'predictive_model' in context:
 			model = context['predictive_model']
+		else:
+			model = set_predictive_model_from_context(context)
 	return model
 
 # Application funcs ------------------------------
@@ -253,20 +270,18 @@ def get_chat(text):
 	if PRESENT_FORM in text:
 		responses = text.split(PRESENT_FORM)
 		chat = responses[0]
+	chat = substitute_hash_values(chat)
 	return chat
 	
-def create_application_message(chat, form, context):
-	return {'chat': chat, 'form': form, 'context': context}
+#def create_application_message(chat, form, context):
+	#return {'chat': chat, 'form': form, 'context': context}
 
 def get_application_message(message):
 	formatted_text = format_text(message)
-	#formatted_text = string.replace(formatted_text, '[', '<')
-	#formatted_text = string.replace(formatted_text, ']', '>')
 	chat = get_chat(formatted_text)
 	form = get_form(formatted_text)
-	context = {}
 	#application_message
-	application_message = {'chat': chat, 'form': form, 'context': context}
+	application_message = {'chat': chat, 'form': form, 'context': {}}
 	#randr search requested
 	if (application_message['chat'].startswith(SEARCH_WITH_RANDR)):
 		search_arg = extract_search_arg(message)
@@ -274,11 +289,16 @@ def get_application_message(message):
 	#wex search requested
 	if (application_message['chat'].startswith(SEARCH_WITH_WEX)):
 		search_arg = extract_search_arg(message)
-		application_message['chat'] = search_randr(search_arg)
+		application_message['chat'] = search_wex(search_arg)
 	#predictive model evaluated
 	if (application_message['chat'].startswith(EVALUATE_PREDICTIVE_MODEL)):
 		application_message['chat'] = application_message['chat'].replace(EVALUATE_PREDICTIVE_MODEL, '')
 		model = extract_predictive_model(message)
 		entity = BMIX_evaluate_predictive_model(model)
 		application_message['context'] = set_context_from_predictive_model(entity)
+	#custom service invoked
+	if (application_message['chat'].startswith(INVOKE_CUSTOM_SERVICE)):
+		application_message['chat'] = application_message['chat'].replace(INVOKE_CUSTOM_SERVICE, '')
+		context = extract_context(message)
+		application_message['context'] = invoke_custom_service(context, application_message['chat'])
 	return application_message

@@ -25,7 +25,9 @@ TONE_ANALYZER_PASSWORD = 'QYpAOVI483BN'
 #Call center.v1
 #CONVERSATION_WORKSPACE_ID = '74977afb-0288-4ad7-98dc-ab2c5f226f3a'
 #Call center.v2
-CONVERSATION_WORKSPACE_ID = '4dcf0368-4f48-4b0d-8147-e772bb3abe2e'
+#CONVERSATION_WORKSPACE_ID = '4dcf0368-4f48-4b0d-8147-e772bb3abe2e'
+#Call center.v3
+CONVERSATION_WORKSPACE_ID = '1e59184e-7bf7-4474-ae14-f67e2adfc506'
 #Drive-through bot
 #CONVERSATION_WORKSPACE_ID = '20c4d294-28a4-494f-9d19-503a3d5155de'
 #Public Sector Password reset
@@ -49,7 +51,8 @@ RANKER_ID = '1ba90dx16-rank-70'
 RETRIEVE_AND_RANK_USERNAME = '286585e0-a6fd-4d52-973e-e3a9da68faa3'
 RETRIEVE_AND_RANK_PASSWORD = 'MVZTcnP4ibDN'
 RANDR_SEARCH_ARGS = 'id,body,title,author,RunBook_URL'
-WEX_URL = 'http://10.72.19.40/vivisimo/cgi-bin/velocity.exe?v.function=query-search&v.indent=true&query=[##QUERY_STR##]&sources=LAMR-all-filesystem&v.app=api-rest&authorization-username=admin&authorization-password=admin&v.username=data-explorer-admin&v.password=TH1nk1710'
+WEX_URL = 'http://10.72.19.45:9080/vivisimo/cgi-bin/velocity.exe?v.function=query-search&v.indent=true&query=[##QUERY_STR##]&sources=LAMR-all-filesystem&v.app=api-rest&authorization-username=admin&authorization-password=admin&v.username=data-explorer-admin&v.password=TH1nk1710'
+#WEX_URL = 'http://10.72.19.40/vivisimo/cgi-bin/velocity.exe?v.function=query-search&v.indent=true&query=[##QUERY_STR##]&sources=LAMR-all-filesystem&v.app=api-rest&authorization-username=admin&authorization-password=admin&v.username=data-explorer-admin&v.password=TH1nk1710'
 CASTIRON_USERNAME = ''
 CASTIRON_PASSWORD = ''
 CIRON_URL_GET_ASSET_ACTIVATION_CODE = 'https://provide.castiron.ibmcloud.com/env/Development/getActivationCode'

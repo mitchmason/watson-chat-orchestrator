@@ -12,7 +12,7 @@ from beaker.middleware import SessionMiddleware
 #####
 # Other python modules in WEA demo framework
 #####
-import application, watson, session, activate, over_activate
+import application, watson, session, activate, over_activate, lookup
 # ------------------------------------------------
 # GLOBAL VARIABLES -------------------------------
 # ------------------------------------------------
@@ -70,6 +70,7 @@ g = session.g
 app = Flask(__name__)
 app.register_blueprint(activate.activate)
 app.register_blueprint(over_activate.over_activate)
+app.register_blueprint(lookup.lookup)
 
 @app.route('/')
 def Index():
@@ -96,6 +97,8 @@ def Index_Post():
 	context = set_context_from_chat(question)
 	while True:
 		message = create_message(question, context)
+		#print('***MESSAGE***')
+		#print(message)
 		message = converse(message)
 		application_message = get_application_message(message)
 		if application_message['context'] == {}:
@@ -106,6 +109,27 @@ def Index_Post():
 #	Display and render application_message
 	post_watson_response(application_message['chat'])
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=application_message['form'], context=message['context'], stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
+		
+@app.route('/service', methods=['POST'])
+def Service_Post():
+#	Get data from post -- should be in the form of a conversation message
+	data = json.loads(request.data)
+	question = ''
+	if 'input' in data:
+		if 'text' in data['input']:
+			question = data['input']['text']
+#	Get conversation response
+	context = set_context_from_chat(question)
+	while True:
+		message = create_message(question, context)
+		message = converse(message)
+		application_message = get_application_message(message)
+		if application_message['context'] == {}:
+			break
+		else:
+			context = application_message['context']
+			question = application_message['chat']
+	return json.dumps(message, separators=(',',':'))
 		
 @app.route('/form', methods=['POST'])
 def Form_Post():
