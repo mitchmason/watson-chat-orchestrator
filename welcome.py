@@ -83,6 +83,10 @@ def Index():
 #	Initialize POSTS list
 	s('POSTS',[])
 #	Call conversation service/post response
+	#message = {}
+	#message['context'] = request.args
+	#message['input'] = json.loads('{"text": ""}')
+	#message = converse(message)
 	message = converse({})
 	post_watson_response(format_text(message))
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form='', stt_token=stt_token, tts_token=tts_token)
@@ -97,8 +101,6 @@ def Index_Post():
 	context = set_context_from_chat(question)
 	while True:
 		message = create_message(question, context)
-		#print('***MESSAGE***')
-		#print(message)
 		message = converse(message)
 		application_message = get_application_message(message)
 		if application_message['context'] == {}:
@@ -110,16 +112,20 @@ def Index_Post():
 	post_watson_response(application_message['chat'])
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=application_message['form'], context=message['context'], stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
 		
-@app.route('/service', methods=['POST'])
-def Service_Post():
+@app.route('/ivr', methods=['POST'])
+def Index_Ivr():
 #	Get data from post -- should be in the form of a conversation message
 	data = json.loads(request.data)
 	question = ''
+	context = {}
 	if 'input' in data:
 		if 'text' in data['input']:
 			question = data['input']['text']
-#	Get conversation response
-	context = set_context_from_chat(question)
+			context = set_context_from_chat(question)
+			print('--set_context_from_chat')
+	if 'context' in data:
+		for key in data['context']:
+			context[key] = data['context'][key]
 	while True:
 		message = create_message(question, context)
 		message = converse(message)
@@ -129,6 +135,26 @@ def Service_Post():
 		else:
 			context = application_message['context']
 			question = application_message['chat']
+	return json.dumps(message, separators=(',',':'))
+		
+@app.route('/service', methods=['POST'])
+def Service_Post():
+#	Get data from post -- should be in the form of a conversation message
+	message = json.loads(request.data)
+	while True:
+		next_message = {}
+		if 'input' in message:
+			next_message['input'] = message['input']
+		if 'context' in message:
+			next_message['context'] = message['context']
+		message = converse(next_message)
+		application_message = get_application_message(message)
+		if application_message['context'] == {}:
+			break
+		else:
+			message['input'] = json.loads('{"text": "' + application_message['chat'] + '"}')
+			for key in application_message['context']:
+				message['context'][key] = application_message['context'][key]
 	return json.dumps(message, separators=(',',':'))
 		
 @app.route('/form', methods=['POST'])
