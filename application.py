@@ -3,7 +3,7 @@
 # ------------------------------------------------
 #####
 # Python dist and 3rd party libraries
-#####
+#####	
 import os, requests, json, string, datetime, csv
 #from flask import session
 #####
@@ -84,6 +84,7 @@ BMIX_call_alchemy_api = watson.BMIX_call_alchemy_api
 BMIX_evaluate_predictive_model = watson.BMIX_evaluate_predictive_model
 BMIX_retrieve_and_rank = watson.BMIX_retrieve_and_rank
 WEX_retrieve = watson.WEX_retrieve
+#CHAT_TEMPLATE = lookup.CHAT_TEMPLATE
 s = session.s
 g = session.g
 substitute_hash_values = lookup.substitute_hash_values
@@ -273,15 +274,16 @@ def get_chat(text):
 	chat = substitute_hash_values(chat)
 	return chat
 	
-#def create_application_message(chat, form, context):
-	#return {'chat': chat, 'form': form, 'context': context}
-
 def get_application_message(message):
 	formatted_text = format_text(message)
 	chat = get_chat(formatted_text)
 	form = get_form(formatted_text)
 	#application_message
 	application_message = {'chat': chat, 'form': form, 'context': {}}
+	#substitute hash map values
+	#for key in HASH_VALUES:
+		#value = HASH_VALUES[key]
+		#application_message['chat'] = application_message['chat'].replace(key, value)
 	#randr search requested
 	if (application_message['chat'].startswith(SEARCH_WITH_RANDR)):
 		search_arg = extract_search_arg(message)

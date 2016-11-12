@@ -83,10 +83,6 @@ def Index():
 #	Initialize POSTS list
 	s('POSTS',[])
 #	Call conversation service/post response
-	#message = {}
-	#message['context'] = request.args
-	#message['input'] = json.loads('{"text": ""}')
-	#message = converse(message)
 	message = converse({})
 	post_watson_response(format_text(message))
 	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form='', stt_token=stt_token, tts_token=tts_token)
@@ -122,7 +118,6 @@ def Index_Ivr():
 		if 'text' in data['input']:
 			question = data['input']['text']
 			context = set_context_from_chat(question)
-			print('--set_context_from_chat')
 	if 'context' in data:
 		for key in data['context']:
 			context[key] = data['context'][key]

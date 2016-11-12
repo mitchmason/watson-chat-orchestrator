@@ -4,7 +4,7 @@
 #####
 # Python dist and 3rd party libraries
 #####
-import os, requests, json, string, datetime
+import os, requests, json, string, datetime, sys
 from os.path import join, dirname
 from watson_developer_cloud import AuthorizationV1 as Authorization
 from watson_developer_cloud import SpeechToTextV1 as SpeechToText
@@ -61,10 +61,10 @@ WEX_URL = 'http://10.72.19.45:9080/vivisimo/cgi-bin/velocity.exe?v.function=quer
 #WEX_URL = 'http://10.72.19.40/vivisimo/cgi-bin/velocity.exe?v.function=query-search&v.indent=true&query=[##QUERY_STR##]&sources=LAMR-all-filesystem&v.app=api-rest&authorization-username=admin&authorization-password=admin&v.username=data-explorer-admin&v.password=TH1nk1710'
 CASTIRON_USERNAME = ''
 CASTIRON_PASSWORD = ''
-CIRON_URL_GET_ASSET_ACTIVATION_CODE = 'https://provide.castiron.ibmcloud.com/env/Development/getActivationCode'
-CIRON_URL_CREATE_CASE = 'https://provide.castiron.ibmcloud.com/env/Development/createCase'
-CIRON_URL_ACTIVATION = 'https://provide.castiron.ibmcloud.com/env/Development/getAssetContacts?serialNumber='
-CIRON_URL_GET_SERIAL = 'https://provide.castiron.ibmcloud.com/env/Development/getLicense'
+CIRON_URL_GET_ASSET_ACTIVATION_CODE = 'https://provide.castiron.ibmcloud.com/env/Development/STAGE/getActivationCode'
+CIRON_URL_CREATE_CASE = 'https://provide.castiron.ibmcloud.com/env/Development/STAGE/createCase'
+CIRON_URL_ACTIVATION = 'https://provide.castiron.ibmcloud.com/env/Development/STAGE/getAssetContacts?serialNumber='
+CIRON_URL_GET_SERIAL = 'https://provide.castiron.ibmcloud.com/env/Development/STAGE/getLicense'
 
 #####
 # Overwrites by env variables
@@ -142,21 +142,18 @@ if 'VCAP_SERVICES' in os.environ:
 def CIRON_get_asset_activation_code(data):
 	global CIRON_URL_GET_ASSET_ACTIVATION_CODE, CASTIRON_USERNAME, CASTIRON_PASSWORD
 	POST_SUCCESS = 200
-	print('---data')
-	print(data)
 	castiron_response = {}
 	url = CIRON_URL_GET_ASSET_ACTIVATION_CODE
 	r = requests.post(url, auth=(CASTIRON_USERNAME, CASTIRON_PASSWORD), data=data)
-	print('---r.text')
-	print(r.text)
-	print('---status-code activation code')
+	print('---CIRON_get_asset_activation_code')
+	print('---r.status_code')
 	print(r.status_code)
 	if r.status_code == POST_SUCCESS:
 		castiron_response = r.json()
 		print('--Status_Message Get Asset')
 		print(castiron_response['Status_Message'])
 	else:
-		castiron_response['Status_Message'] = 'Cast Iron service call failed with return code: ' + r.status_code + ']'
+		castiron_response['Status_Message'] = 'Cast Iron service call failed with return code: [' + str(r.status_code) + ']'
 	return castiron_response
 
 def BMIX_evaluate_predictive_model(model):

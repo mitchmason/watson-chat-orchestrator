@@ -34,4 +34,4 @@ def Index():
 	application_message = get_application_message(message)
 # Display and render application_message
 	post_watson_response(application_message['chat'])
-	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=application_message['form'], context=application_message['context'], stt_token=g('STT_TOKEN', ''), tts_token=g('TTS_TOKEN', ''))
+	return render_template(CHAT_TEMPLATE, posts=g('POSTS',[]), form=application_message['form'], context=message['context'])

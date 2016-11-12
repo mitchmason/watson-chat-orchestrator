@@ -79,60 +79,6 @@ def set_context_from_predictive_model(entity):
 	return context
 
 # Custom service func ----------------------------
-def APPLE_post(url, application_context):
-	USERNAME = 'john'
-	PASSWORD = 'appleseed'
-	POST_SUCCESS = 200
-	r = requests.post(url, auth=(USERNAME, PASSWORD), headers={'content-type': 'application/json'})
-	application_context['REST_API_return_code'] = r.status_code
-	if r.status_code == POST_SUCCESS:
-		message = r.json()
-		application_context['REST_API_message'] = message
-	return application_context
-
-def convert_date_format(date_string):
-	month = date_string[0:2]
-	day = date_string[3:5]
-	year = date_string[6:]
-	return(year + month + day)
-
-def get_most_recent_order(rest_api_message):
-	most_recent_order = {}
-	if 'orders' in rest_api_message:
-		orders = rest_api_message['orders']
-		most_recent_delivery_date = '19991231'
-		for order in orders:
-			won = order.get('won', '')
-			olssUrl = order.get('olssUrl', '')
-			lineitems = order.get('lineItems', [])
-			for lineitem in lineitems:
-				deliveryStatus = lineitem.get('deliveryStatus', '')
-				carrierWebsite = lineitem.get('carrierWebsite', '')
-				carrierName = lineitem.get('carrierName', '')
-				modelNumber = lineitem.get('modelNumber', '')
-				carrierTrackingId = lineitem.get('carrierTrackingId', '')
-				status = lineitem.get('status', '')
-				productName = lineitem.get('productName', '')
-				deliveryDate = lineitem.get('deliveryDate', '12/31/1999')
-				lineitem['deliveryDate_yyyymmdd'] = convert_date_format(deliveryDate)
-				if most_recent_order == {} or lineitem['deliveryDate_yyyymmdd'] > most_recent_delivery_date:
-					most_recent_delivery_date = lineitem['deliveryDate_yyyymmdd']
-					most_recent_order = order
-	return most_recent_order
-	
 def invoke_custom_service(message_context, custom_service_label):
 	application_context = {}
-#	if message_context['Apple_REST_API'] == 'Orders list':
-#		url = 'http://ec2-52-35-6-233.us-west-2.compute.amazonaws.com/mmap/order/orders'
-#		application_context = APPLE_post(url, application_context)
-#		application_context['REST_API_most_recent_order'] = get_most_recent_order(application_context['REST_API_message'])
-#	elif message_context['Apple_REST_API'] == 'Order detail':
-#		url = 'http://ec2-52-35-6-233.us-west-2.compute.amazonaws.com/mmap/order/order?ordernumber=W135'
-#		application_context = APPLE_post(url, application_context)
-#	elif message_context['Apple_REST_API'] == 'Warranty status':
-#		url = 'http://ec2-52-35-6-233.us-west-2.compute.amazonaws.com/mmap/order/warranty?serialnumber=A246'
-#		application_context = APPLE_post(url, application_context)
-#	elif message_context['Apple_REST_API'] == 'Cancel order':
-#		url = 'http://ec2-52-35-6-233.us-west-2.compute.amazonaws.com/mmap/order/cancelorder?ordernumber=W135'
-#		application_context = APPLE_post(url, application_context)
 	return application_context

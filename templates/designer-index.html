@@ -1,21 +1,15 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>WEA Demonstration</title>
+		<title>Watson Conversation Demonstration</title>
 		<meta charset="utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<script>
-			function updateScroll(){
-				var element = document.getElementById("chat");
-				element.scrollTop = element.scrollHeight;
-			}
-		</script>
 		<script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 		<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
 		<link href="/static/stylesheets/styles.css" rel="stylesheet">
 	</head>
-	<body onload=updateScroll()>
+	<body>
 		<div class="container">
 			<header>
 				<h1>Partner Digitial Concierge...chat with Watson!</h1>
@@ -31,6 +25,10 @@
 					</div>
 					{% endfor %}
 				</div>
+				<script type="text/javascript">
+var element = document.getElementById("chat");
+element.scrollTop = element.scrollHeight;
+				</script>
 				<!-- Additions for TTS & STT -->
 				<p><input id="voice" type="checkbox" /> Use voice</p>
 				<form class="chat--input" action='.' method='POST'>
