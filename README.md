@@ -12,7 +12,7 @@ When you sign up, you'll create an IBM ID, create an alias, and register with Bl
 
 1. Select the **Deploy to Bluemix** button below to fork a copy of the project code and create the services.
 
-  [![Deploy to Bluemix](https://bluemix.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/dsayers/watson-chat-orchestrator.git)
+  [![Deploy to Bluemix](https://bluemix.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/mitchmason/watson-chat-orchestrator.git)
 
 2.  Once you fill in the necessary fields, click **DEPLOY** to start the deployment of the Engagement Advisor app and static services used.
 
